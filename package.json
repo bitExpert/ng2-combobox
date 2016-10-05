@@ -24,7 +24,7 @@
     "selectfield"
   ],
   "author": "pgrimm",
-  "license": "Apache 2.0",
+  "license": "Apache-2.0",
   "devDependencies": {
     "@angular/common": "^2.0.0-rc.6",
     "@angular/compiler": "^2.0.0-rc.6",
