@@ -23,7 +23,7 @@
     "autocomplete",
     "selectfield"
   ],
-  "author": "pgrimm",
+  "author": "bitExpert AG <info@bitExpert.de>",
   "license": "Apache-2.0",
   "devDependencies": {
     "@angular/common": "^2.0.0-rc.6",
