@@ -1,0 +1,39 @@
+{
+  "name": "ng2-combobox",
+  "version": "0.0.3",
+  "description": "remote and local combobox component for angular 2",
+  "main": "index.js",
+  "scripts": {
+    "clean": "./scripts/clean.sh",
+    "lint": "tslint \"src/**/*.ts\" --exclude \"src/**/*.d.ts\"",
+    "dev": "tsc --watch",
+    "prepublish": "tsc"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/bitExpert/ng2-combobox.git"
+  },
+  "keywords": [
+    "combo",
+    "angular",
+    "ng2",
+    "combobox",
+    "angular2",
+    "typeahead",
+    "autocomplete",
+    "selectfield"
+  ],
+  "author": "pgrimm",
+  "license": "Apache 2.0",
+  "devDependencies": {
+    "@angular/common": "^2.0.0-rc.6",
+    "@angular/compiler": "^2.0.0-rc.6",
+    "@angular/core": "^2.0.0-rc.6",
+    "@angular/forms": "^2.0.0-rc.6",
+    "core-js": "^2.4.1",
+    "reflect-metadata": "^0.1.8",
+    "rxjs": "^5.0.0-beta.11",
+    "typescript": "^2.0.2",
+    "zone.js": "^0.6.17"
+  }
+}
