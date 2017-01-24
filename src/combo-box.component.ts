@@ -20,8 +20,8 @@ import {ControlValueAccessor, NG_VALUE_ACCESSOR} from '@angular/forms';
         
             <div class="list" *ngIf="data && !hideList">
                 <div *ngFor="let item of data;let index = index;"
-                     [ngClass]="{'item': true, 'marked': isMarked(item)}"
-                     (click)="onItemClick(index)">
+                     [ngClass]="{'item': true, 'marked': isMarked(item), 'disabled': isDisabled(item)}"
+                     (click)="onItemClick(index, item)">
                     {{getDisplayValue(item)}}
                 </div>
             </div>
@@ -55,6 +55,10 @@ import {ControlValueAccessor, NG_VALUE_ACCESSOR} from '@angular/forms';
         
         .list .item.marked {
             font-weight: bold;
+        }
+        
+        .list .item.disabled {
+            opacity: .5;
         }
         
         .icons {
@@ -118,6 +122,8 @@ export class ComboBoxComponent implements ControlValueAccessor, OnInit {
     triggerIconClass: string = 'trigger';
     @Input()
     dataRoot: string = '';
+    @Input()
+    disabledField: string = null;
 
     @Output()
     onQuery = new EventEmitter<string>();
@@ -236,7 +242,10 @@ export class ComboBoxComponent implements ControlValueAccessor, OnInit {
         }
     }
 
-    onItemClick(index: number) {
+    onItemClick(index: number, item: Object) {
+        if(this.isDisabled(item)) {
+            return;
+        }
         this.marked = index;
 
         this.onSelect.emit(this.data[this.marked]);
@@ -279,17 +288,37 @@ export class ComboBoxComponent implements ControlValueAccessor, OnInit {
         return this.data[this.marked] === value;
     }
 
+    isDisabled(value: Object): boolean {
+        if(!this.disabledField) {
+            return false;
+        }
+
+        return !!value[this.disabledField];
+    }
+
     private handleEnter() {
         if (!this.loading) {
             if (null === this.marked) {
                 if (this.forceSelection) {
-                    this.marked = 0;
-                    this.onSelect.emit(this._initialData[this.marked]);
-                    this.sendModelChange(this.data[this.marked]);
+                    this.marked = null;
+                    for(let i = 0; i < this.data.length; i++) {
+                        if(!this.isDisabled(this.data[i])) {
+                            this.marked = i;
+                            break;
+                        }
+                    }
+                    if(this.marked) {
+                        this.onSelect.emit(this.data[this.marked]);
+                        this.sendModelChange(this.data[this.marked]);
+                    }
                 } else {
                     this.onCreate.emit(this.currVal);
                 }
             } else {
+                let item = this.data[this.marked];
+                if(this.isDisabled(item)) {
+                    return;
+                }
                 this.onSelect.emit(this.data[this.marked]);
                 this.sendModelChange(this.data[this.marked]);
             }
