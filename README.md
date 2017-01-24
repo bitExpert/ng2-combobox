@@ -67,6 +67,9 @@ class to apply to the loading icon element
 `dataRoot: string = '';`
 root element for list data (only first level at the moment)
 
+`disabledField: string = '';`
+member of data object which marks object as disabled (sets class and prevent selection)
+
 ### Events / Outputs
 
 `onQuery: EventEmitter<string>();`  
