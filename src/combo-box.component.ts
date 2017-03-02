@@ -1,4 +1,4 @@
-import {Component, OnInit, Input, Output, EventEmitter, forwardRef} from '@angular/core';
+import {Component, OnInit, Input, Output, EventEmitter, forwardRef, ViewChild} from '@angular/core';
 import {Observable, Subscription} from 'rxjs/Rx';
 import {ControlValueAccessor, NG_VALUE_ACCESSOR} from '@angular/forms';
 
@@ -7,7 +7,7 @@ import {ControlValueAccessor, NG_VALUE_ACCESSOR} from '@angular/forms';
     selector: 'combo-box',
     template: `
         <div class="field-wrap">
-            <input class="{{inputClass}}" type="text"
+            <input #inputField class="{{inputClass}}" type="text"
                    [(ngModel)]="currVal"
                    (keydown)="onKeyDown($event)"
                    (blur)="onFieldBlur($event)"
@@ -15,7 +15,7 @@ import {ControlValueAccessor, NG_VALUE_ACCESSOR} from '@angular/forms';
         
             <div class="icons">
                 <i *ngIf="loading" class="{{loadingIconClass}}"></i>
-                <i *ngIf="!loading" class="{{triggerIconClass}}"></i>
+                <i *ngIf="!loading" (click)="onTriggerClick()" class="{{triggerIconClass}}"></i>
             </div>
         
             <div class="list" *ngIf="data && !hideList">
@@ -124,6 +124,8 @@ export class ComboBoxComponent implements ControlValueAccessor, OnInit {
     dataRoot: string = '';
     @Input()
     disabledField: string = null;
+    @Input()
+    editable: boolean = true;
 
     @Output()
     onQuery = new EventEmitter<string>();
@@ -136,10 +138,12 @@ export class ComboBoxComponent implements ControlValueAccessor, OnInit {
     @Output()
     onInitValue = new EventEmitter<string>();
 
-    loading: boolean = false;
+    @ViewChild('inputField') _input;
+
     hideList: boolean = true;
     data: any[];
 
+    private _loading: boolean = false;
     private _listDataSubscription: Subscription;
     private _aheadTimer: number;
     private _currVal: string;
@@ -147,6 +151,7 @@ export class ComboBoxComponent implements ControlValueAccessor, OnInit {
     private _initialData: any[];
     private _hasFocus: boolean = false;
     private _tmpVal: any;
+    private _enterCued: boolean = false;
 
     // ControlValueAccessor props
     private propagateTouch = () => {
@@ -226,6 +231,18 @@ export class ComboBoxComponent implements ControlValueAccessor, OnInit {
         return this._marked;
     }
 
+    set loading(loading: boolean) {
+        this._loading = loading;
+        if(!loading && this._enterCued) {
+            this._enterCued = false;
+            this.handleEnter();
+        }
+    }
+
+    get loading(): boolean {
+        return this._loading;
+    }
+
     onKeyDown(event: KeyboardEvent) {
         const code = event.which || event.keyCode;
         switch (code) {
@@ -239,11 +256,18 @@ export class ComboBoxComponent implements ControlValueAccessor, OnInit {
             case 40:
                 this.handleDown();
                 break;
+            default:
+                if (!this.editable) {
+                    event.preventDefault();
+                    event.stopImmediatePropagation();
+                    return false;
+                }
+                break;
         }
     }
 
     onItemClick(index: number, item: Object) {
-        if(this.isDisabled(item)) {
+        if (this.isDisabled(item)) {
             return;
         }
         this.marked = index;
@@ -266,10 +290,7 @@ export class ComboBoxComponent implements ControlValueAccessor, OnInit {
         this.onBlur.emit(event);
         // timeout for hide to catch click event on list :-(
         setTimeout(() => {
-            this.hideList = true;
-            if (!this.remote && !this.localFilter) {
-                this.data = this._initialData;
-            }
+            this.handleEnter();
         }, 200);
 
         this.propagateTouch();
@@ -278,6 +299,9 @@ export class ComboBoxComponent implements ControlValueAccessor, OnInit {
     onFieldFocus() {
         this._hasFocus = true;
         this.hideList = false;
+        if (!this.editable) {
+            this.clear();
+        }
         this.loadData();
     }
 
@@ -289,7 +313,7 @@ export class ComboBoxComponent implements ControlValueAccessor, OnInit {
     }
 
     isDisabled(value: Object): boolean {
-        if(!this.disabledField) {
+        if (!this.disabledField) {
             return false;
         }
 
@@ -298,25 +322,28 @@ export class ComboBoxComponent implements ControlValueAccessor, OnInit {
 
     private handleEnter() {
         if (!this.loading) {
+            // try to determine marked (look if item is in list)
+            if (!this.marked) {
+                for (let i = 0; i < this.data.length; i++) {
+                    if (this.currVal === this.getDisplayValue(this.data[i])) {
+                        this.marked = i;
+                        break;
+                    }
+                }
+            }
             if (null === this.marked) {
                 if (this.forceSelection) {
-                    this.marked = null;
-                    for(let i = 0; i < this.data.length; i++) {
-                        if(!this.isDisabled(this.data[i])) {
-                            this.marked = i;
-                            break;
-                        }
-                    }
-                    if(this.marked) {
-                        this.onSelect.emit(this.data[this.marked]);
-                        this.sendModelChange(this.data[this.marked]);
-                    }
+                    this.onSelect.emit(null);
+                    this.sendModelChange(null);
+                    this.clear();
                 } else {
                     this.onCreate.emit(this.currVal);
+                    //this may causes error
+                    this.sendModelChange(this.currVal);
                 }
             } else {
                 let item = this.data[this.marked];
-                if(this.isDisabled(item)) {
+                if (this.isDisabled(item)) {
                     return;
                 }
                 this.onSelect.emit(this.data[this.marked]);
@@ -331,6 +358,9 @@ export class ComboBoxComponent implements ControlValueAccessor, OnInit {
             if (!this.remote && !this.localFilter) {
                 this.data = this._initialData;
             }
+        }
+        else {
+            this._enterCued = true;
         }
     }
 
@@ -408,6 +438,10 @@ export class ComboBoxComponent implements ControlValueAccessor, OnInit {
             });
         }
         return value;
+    }
+
+    onTriggerClick() {
+        this._input.nativeElement.focus();
     }
 
     writeValue(value: any): void {
