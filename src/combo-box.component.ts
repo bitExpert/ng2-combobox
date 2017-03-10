@@ -203,10 +203,6 @@ export class ComboBoxComponent implements ControlValueAccessor, OnInit {
         clearTimeout(this._aheadTimer);
         if (!this._currVal) {
             this.sendModelChange(null);
-            if (!this.remote && this.localFilter) {
-                this.data = this._initialData;
-            }
-            return;
         }
 
         this._aheadTimer = setTimeout(this.loadData.bind(this), this.typeAheadDelay);
