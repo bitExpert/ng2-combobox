@@ -18,7 +18,7 @@ import {ControlValueAccessor, NG_VALUE_ACCESSOR} from '@angular/forms';
                 <i *ngIf="!loading" (click)="onTriggerClick()" class="{{triggerIconClass}}"></i>
             </div>
         
-            <div class="list" *ngIf="data && !hideList">
+            <div class="list" *ngIf="data && !hideList" (mouseenter)="onMouseEnterList($event)" (mouseleave)="onMouseLeaveList($event)">
                 <div *ngFor="let item of data;let index = index;"
                      [ngClass]="{'item': true, 'marked': isMarked(item), 'disabled': isDisabled(item)}"
                      (click)="onItemClick(index, item)">
@@ -152,6 +152,7 @@ export class ComboBoxComponent implements ControlValueAccessor, OnInit {
     private _hasFocus: boolean = false;
     private _tmpVal: any;
     private _enterCued: boolean = false;
+    private _noBlur: boolean = false;
 
     // ControlValueAccessor props
     private propagateTouch = () => {
@@ -266,6 +267,7 @@ export class ComboBoxComponent implements ControlValueAccessor, OnInit {
         if (this.isDisabled(item)) {
             return;
         }
+        this._noBlur = false;
         this.marked = index;
 
         this.onSelect.emit(this.data[this.marked]);
@@ -282,6 +284,10 @@ export class ComboBoxComponent implements ControlValueAccessor, OnInit {
     }
 
     onFieldBlur(event: FocusEvent) {
+        if (this._noBlur) {
+            return;
+        }
+
         this._hasFocus = false;
         this.onBlur.emit(event);
         // timeout for hide to catch click event on list :-(
@@ -299,6 +305,14 @@ export class ComboBoxComponent implements ControlValueAccessor, OnInit {
             this.clear();
         }
         this.loadData();
+    }
+
+    onMouseEnterList() {
+        this._noBlur = true;
+    }
+
+    onMouseLeaveList() {
+        this._noBlur = false;
     }
 
     isMarked(value: Object): boolean {
