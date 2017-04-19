@@ -197,9 +197,7 @@ export class ComboBoxComponent implements ControlValueAccessor, OnInit {
         this._currVal = value;
         this._tmpVal = null;
         this.marked = null;
-        if (this._hasFocus) {
-            this.hideList = false;
-        }
+        this.hideList = !(this._hasFocus && this._noBlur);
 
         clearTimeout(this._aheadTimer);
         if (!this._currVal) {
