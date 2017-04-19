@@ -282,11 +282,11 @@ export class ComboBoxComponent implements ControlValueAccessor, OnInit {
     }
 
     onFieldBlur(event: FocusEvent) {
+        this._hasFocus = false;
         if (this._noBlur) {
             return;
         }
 
-        this._hasFocus = false;
         this.onBlur.emit(event);
         // timeout for hide to catch click event on list :-(
         setTimeout(() => {
