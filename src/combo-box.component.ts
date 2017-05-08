@@ -91,6 +91,10 @@ import {ControlValueAccessor, NG_VALUE_ACCESSOR} from '@angular/forms';
             background-image: url("data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz4NCjxzdmcgdmVyc2lvbj0iMS4xIiBpZD0iRWJlbmVfM19Lb3BpZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB4bWxuczp4bGluaz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94bGluayIgeD0iMHB4Ig0KCSB5PSIwcHgiIHZpZXdCb3g9IjAgMCA1OSAzMS45IiBzdHlsZT0iZW5hYmxlLWJhY2tncm91bmQ6bmV3IDAgMCA1OSAzMS45OyIgeG1sOnNwYWNlPSJwcmVzZXJ2ZSI+DQo8c3R5bGUgdHlwZT0idGV4dC9jc3MiPg0KCS5zdDB7ZmlsbDpub25lO3N0cm9rZTojMDAwMDAwO3N0cm9rZS13aWR0aDoxLjU7c3Ryb2tlLW1pdGVybGltaXQ6MTA7fQ0KPC9zdHlsZT4NCjxwb2x5bGluZSBjbGFzcz0ic3QwIiBwb2ludHM9IjU3LjYsMS44IDI5LjUsMjkuOCAyOS41LDI5LjggMS41LDEuOCAiLz4NCjwvc3ZnPg0K");
             cursor: pointer;
         }
+
+        input::-ms-clear {
+            display:none;
+        }
     `],
     providers: [{
         provide: NG_VALUE_ACCESSOR,
