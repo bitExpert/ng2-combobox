@@ -58,6 +58,9 @@ delay before triggering search.
 `inputClass: string = 'form-control';`  
 class to apply to the inner input field
 
+`inputErrorClass: string;`
+class to append to the inner input field if the control becomes invalid
+
 `loadingIconClass: string = 'loader';`  
 class to apply to the loading icon element
 

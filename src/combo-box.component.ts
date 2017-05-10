@@ -1,23 +1,23 @@
 import {Component, OnInit, Input, Output, EventEmitter, forwardRef, ViewChild} from '@angular/core';
 import {Observable, Subscription} from 'rxjs/Rx';
-import {ControlValueAccessor, NG_VALUE_ACCESSOR} from '@angular/forms';
+import {AbstractControl, ControlValueAccessor, NG_VALIDATORS, NG_VALUE_ACCESSOR, Validator} from '@angular/forms';
 
 @Component({
     moduleId: 'ng2-combobox',
     selector: 'combo-box',
     template: `
         <div class="field-wrap">
-            <input #inputField class="{{inputClass}}" type="text"
+            <input #inputField class="{{inputClass}} {{valid ? '' : inputErrorClass}}" type="text"
                    [(ngModel)]="currVal"
                    (keydown)="onKeyDown($event)"
                    (blur)="onFieldBlur($event)"
                    (focus)="onFieldFocus()">
-        
+
             <div class="icons">
                 <i *ngIf="loading" class="{{loadingIconClass}}"></i>
                 <i *ngIf="!loading" (click)="onTriggerClick()" class="{{triggerIconClass}}"></i>
             </div>
-        
+
             <div class="list" *ngIf="data && !hideList" (mouseenter)="onMouseEnterList($event)" (mouseleave)="onMouseLeaveList($event)">
                 <div *ngFor="let item of data;let index = index;"
                      [ngClass]="{'item': true, 'marked': isMarked(item), 'disabled': isDisabled(item)}"
@@ -96,9 +96,14 @@ import {ControlValueAccessor, NG_VALUE_ACCESSOR} from '@angular/forms';
         provide: NG_VALUE_ACCESSOR,
         useExisting: forwardRef(() => ComboBoxComponent),
         multi: true
+    },
+    {
+      provide: NG_VALIDATORS,
+      useExisting: forwardRef(() => ComboBoxComponent),
+      multi: true
     }]
 })
-export class ComboBoxComponent implements ControlValueAccessor, OnInit {
+export class ComboBoxComponent implements ControlValueAccessor, OnInit, Validator {
 
     @Input()
     displayField: string;
@@ -116,6 +121,8 @@ export class ComboBoxComponent implements ControlValueAccessor, OnInit {
     typeAheadDelay: number = 500;
     @Input()
     inputClass: string = 'form-control';
+    @Input()
+    inputErrorClass: string;
     @Input()
     loadingIconClass: string = 'loader';
     @Input()
@@ -142,6 +149,7 @@ export class ComboBoxComponent implements ControlValueAccessor, OnInit {
 
     hideList: boolean = true;
     data: any[];
+    valid: boolean = true;
 
     private _loading: boolean = false;
     private _listDataSubscription: Subscription;
@@ -158,6 +166,10 @@ export class ComboBoxComponent implements ControlValueAccessor, OnInit {
     private propagateTouch = () => {
     };
     private propagateChange = (_: any) => {
+    };
+
+    // Validator props
+    private propagateValidate = (_: any) => {
     };
 
     constructor() {
@@ -452,6 +464,8 @@ export class ComboBoxComponent implements ControlValueAccessor, OnInit {
         this._input.nativeElement.focus();
     }
 
+    // Implement ControlValueAccessor interface
+
     writeValue(value: any): void {
         value = this.searchValueObject(value);
 
@@ -470,5 +484,25 @@ export class ComboBoxComponent implements ControlValueAccessor, OnInit {
 
     registerOnTouched(fn: any): void {
         this.propagateTouch = fn;
+    }
+
+    // Implement Validator interface
+    validate(c: AbstractControl): { [key: string]: any; } {
+        if(!this.remote) {
+            this.valid = !! this._initialData.find(user => this.getDisplayValue(user) === this.currVal);
+        } else {
+            // TODO implement validation for remote data
+            this.valid = true;
+        }
+
+        if(!this.valid) {
+            return {'INVALID': 'Could not match the input to any of the provided data'};
+        } else {
+            return null;
+        }
+    }
+
+    registerOnValidatorChange(fn: () => void): void {
+        this.propagateValidate = fn;
     }
 }
