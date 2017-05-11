@@ -149,7 +149,7 @@ export class ComboBoxComponent implements ControlValueAccessor, OnInit, Validato
 
     hideList: boolean = true;
     data: any[];
-    valid: boolean = true;
+    valid: boolean = false;
 
     private _loading: boolean = false;
     private _listDataSubscription: Subscription;
