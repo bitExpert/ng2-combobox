@@ -167,7 +167,7 @@ export class ComboBoxComponent implements ControlValueAccessor, OnInit, Validato
     };
 
     // Validator props
-    private propagateValidate = (_: any) => {
+    private propagateValidate = () => {
     };
 
     constructor() {
@@ -197,9 +197,15 @@ export class ComboBoxComponent implements ControlValueAccessor, OnInit, Validato
             });
         } else {
             let data = <Object[]>value;
+            if(!data) {
+                data = [];
+            }
             this.data = this._initialData = data;
             this.loading = false;
         }
+
+        // During initialisation, the validation was not being triggered after setting the list data.
+        this.propagateValidate();
     }
 
     @Input()
@@ -447,15 +453,8 @@ export class ComboBoxComponent implements ControlValueAccessor, OnInit, Validato
         this.propagateChange(this.getValueValue(val));
     }
 
-    private searchValueObject(value: any): any {
-        if (false === value instanceof Object && this.valueField && this._initialData) {
-            this._initialData.forEach((item) => {
-                if (value === this.getValueValue(item)) {
-                    value = item;
-                }
-            });
-        }
-        return value;
+    private searchByDisplayValue(displayValue: any): any {
+        return this._initialData.find(item => this.getDisplayValue(item) === displayValue);
     }
 
     onTriggerClick() {
@@ -465,13 +464,11 @@ export class ComboBoxComponent implements ControlValueAccessor, OnInit, Validato
     // Implement ControlValueAccessor interface
 
     writeValue(value: any): void {
-        value = this.searchValueObject(value);
 
-        if (value instanceof Object && this.getDisplayValue(value)) {
-            this.currVal = this.getDisplayValue(value);
-        } else {
-            this._tmpVal = value;
-        }
+        this.currVal = this.getDisplayValue(value);
+        this._tmpVal = this.getValueValue(value);
+
+        this.propagateTouch();
 
         this.onInitValue.emit(value);
     }
@@ -486,18 +483,22 @@ export class ComboBoxComponent implements ControlValueAccessor, OnInit, Validato
 
     // Implement Validator interface
     validate(c: AbstractControl): { [key: string]: any; } {
-        if(!this.remote) {
-            this.valid = !! this._initialData.find(user => this.getDisplayValue(user) === this.currVal);
-        } else {
-            // TODO implement validation for remote data
-            this.valid = true;
+
+        if (!this.remote && this._initialData && this._initialData.length > 0) {
+
+            if(!this.currVal || !this.currVal.trim()) {
+                return {'empty_input': 'Input value is empty'};
+            } else {
+                let isValid = !! this.searchByDisplayValue(this.currVal);
+                if(!isValid) {
+                    return {'input_no_match': `Cannot match the input value '${this.currVal}' to any of the provided data`};
+                }
+            }
         }
 
-        if(!this.valid) {
-            return {'INVALID': 'Could not match the input to any of the provided data'};
-        } else {
-            return null;
-        }
+        // TODO implement validation for remote data
+
+        return null;
     }
 
     registerOnValidatorChange(fn: () => void): void {
