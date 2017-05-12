@@ -7,7 +7,7 @@ import {AbstractControl, ControlValueAccessor, NG_VALIDATORS, NG_VALUE_ACCESSOR,
     selector: 'combo-box',
     template: `
         <div class="field-wrap">
-            <input #inputField class="{{inputClass}} {{valid ? '' : inputErrorClass}}" type="text"
+            <input #inputField class="{{inputClass}}" type="text"
                    [(ngModel)]="currVal"
                    (keydown)="onKeyDown($event)"
                    (blur)="onFieldBlur($event)"
@@ -121,8 +121,6 @@ export class ComboBoxComponent implements ControlValueAccessor, OnInit, Validato
     typeAheadDelay: number = 500;
     @Input()
     inputClass: string = 'form-control';
-    @Input()
-    inputErrorClass: string;
     @Input()
     loadingIconClass: string = 'loader';
     @Input()
