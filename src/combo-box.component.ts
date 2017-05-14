@@ -189,6 +189,9 @@ export class ComboBoxComponent implements ControlValueAccessor, OnInit {
             let data = <Object[]>value;
             this.data = this._initialData = data;
             this.loading = false;
+
+            // If the list data change, trigger a reprocessing.
+            this.loadData();
         }
     }
 
