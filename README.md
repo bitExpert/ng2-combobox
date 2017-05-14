@@ -52,6 +52,9 @@ true if an item has to be selected.
 `localFilter: boolean = false;`  
 true if local data should be filtered during typing.
 
+`localFilterCaseSensitive: boolean = true;`  
+true if local data filtering should be case sensitive.
+
 `typeAheadDelay: number = 500;`  
 delay before triggering search.
 
