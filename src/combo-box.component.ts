@@ -1,4 +1,4 @@
-import {Component, OnInit, Input, Output, EventEmitter, forwardRef, ViewChild} from '@angular/core';
+import {Component, OnInit, Input, Output, EventEmitter, forwardRef, ViewChild, ElementRef} from '@angular/core';
 import {Observable, Subscription} from 'rxjs/Rx';
 import {ControlValueAccessor, NG_VALUE_ACCESSOR} from '@angular/forms';
 
@@ -160,7 +160,7 @@ export class ComboBoxComponent implements ControlValueAccessor, OnInit {
     private propagateChange = (_: any) => {
     };
 
-    constructor() {
+    constructor(private scrollElement: ElementRef) {
     }
 
     ngOnInit() {
@@ -211,7 +211,6 @@ export class ComboBoxComponent implements ControlValueAccessor, OnInit {
         return this._currVal;
     }
 
-    // todo: scroll marked into view
     set marked(value: number) {
         if (null === value) {
             this._marked = value;
@@ -220,6 +219,14 @@ export class ComboBoxComponent implements ControlValueAccessor, OnInit {
             // use private var to prevent query trigger
             this._currVal = this.getDisplayValue(this.data[this._marked]);
         }
+        this.scrollToMarkedElement();
+    }
+
+    private scrollToMarkedElement() {
+        let el = this.scrollElement.nativeElement.querySelector(`.list .item:nth-child(${this.marked + 1})`);
+
+        let alignToTop = false;
+        el.scrollIntoView(alignToTop);
     }
 
     get marked(): number {
@@ -246,9 +253,11 @@ export class ComboBoxComponent implements ControlValueAccessor, OnInit {
                 this.handleEnter();
                 break;
             case 38:
+                event.preventDefault();
                 this.handleUp();
                 break;
             case 40:
+                event.preventDefault();
                 this.handleDown();
                 break;
             default:
@@ -373,14 +382,18 @@ export class ComboBoxComponent implements ControlValueAccessor, OnInit {
     }
 
     private handleUp() {
-        if (this.marked) {
+        if (null !== this.marked && this.marked > 0) {
             this.marked--;
+        } else {
+            this.marked = 0;
         }
     }
 
     private handleDown() {
-        if (null !== this.marked) {
-            this.marked++;
+        if (null !== this.marked && this.marked >= 0) {
+            if(this.marked < this.data.length - 1) {
+                this.marked++;
+            }
         } else {
             this.marked = 0;
         }
