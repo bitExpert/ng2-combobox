@@ -58,6 +58,9 @@ delay before triggering search.
 `inputClass: string = 'form-control';`  
 class to apply to the inner input field
 
+`inputPlaceholder: string = '';`
+value of the placeholder attribute of the inner input field
+
 `loadingIconClass: string = 'loader';`  
 class to apply to the loading icon element
 
