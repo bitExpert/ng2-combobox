@@ -7,7 +7,7 @@ import {ControlValueAccessor, NG_VALUE_ACCESSOR} from '@angular/forms';
     selector: 'combo-box',
     template: `
         <div class="field-wrap">
-            <input #inputField class="{{inputClass}}" type="text"
+            <input #inputField class="{{inputClass}}" type="text" placeholder="{{inputPlaceholder}}"
                    [(ngModel)]="currVal"
                    (keydown)="onKeyDown($event)"
                    (blur)="onFieldBlur($event)"
@@ -130,6 +130,8 @@ export class ComboBoxComponent implements ControlValueAccessor, OnInit {
     typeAheadDelay: number = 500;
     @Input()
     inputClass: string = 'form-control';
+    @Input()
+    inputPlaceholder: string = '';
     @Input()
     loadingIconClass: string = 'loader';
     @Input()
