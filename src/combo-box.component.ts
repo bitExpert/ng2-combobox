@@ -125,6 +125,8 @@ export class ComboBoxComponent implements ControlValueAccessor, OnInit {
     @Input()
     localFilter: boolean = false;
     @Input()
+    localFilterCaseSensitive: boolean = true;
+    @Input()
     typeAheadDelay: number = 500;
     @Input()
     inputClass: string = 'form-control';
@@ -437,8 +439,15 @@ export class ComboBoxComponent implements ControlValueAccessor, OnInit {
         if (!this.remote) {
             if (this.localFilter) {
                 this.data = this._initialData.filter((item) => {
-                    return !this.currVal ||
-                        -1 !== this.getDisplayValue(item).indexOf(this.currVal);
+                    if(!this.currVal) {
+                        return true;
+                    } else {
+                        if(this.localFilterCaseSensitive) {
+                            return -1 !== this.getDisplayValue(item).indexOf(this.currVal);
+                        } else {
+                            return -1 !== this.getDisplayValue(item).toLowerCase().indexOf(this.currVal.toLowerCase());
+                        }
+                    }
                 });
             }
         } else {
