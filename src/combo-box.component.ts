@@ -19,6 +19,7 @@ import {ControlValueAccessor, NG_VALUE_ACCESSOR} from '@angular/forms';
             </div>
         
             <div class="list" *ngIf="data && !hideList" (mouseenter)="onMouseEnterList($event)" (mouseleave)="onMouseLeaveList($event)">
+                <div class="no-matches" *ngIf="noMatchesText && data.length == 0">{{noMatchesText}}</div>
                 <div *ngFor="let item of data;let index = index;"
                      [ngClass]="{'item': true, 'marked': isMarked(item), 'disabled': isDisabled(item)}"
                      (click)="onItemClick(index, item)">
@@ -43,6 +44,13 @@ import {ControlValueAccessor, NG_VALUE_ACCESSOR} from '@angular/forms';
             overflow: auto;
         }
         
+        .list .no-matches {
+            padding: 10px 20px;
+            cursor: default;
+            user-select: none;
+            font-style: italic;
+        }
+
         .list .item {
             padding: 10px 20px;
             cursor: pointer;
@@ -130,6 +138,8 @@ export class ComboBoxComponent implements ControlValueAccessor, OnInit {
     disabledField: string = null;
     @Input()
     editable: boolean = true;
+    @Input()
+    noMatchesText: string = '';
 
     @Output()
     onQuery = new EventEmitter<string>();

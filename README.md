@@ -70,6 +70,9 @@ root element for list data (only first level at the moment)
 `disabledField: string = '';`
 member of data object which marks object as disabled (sets class and prevent selection)
 
+`noMatchesText: string = '';`
+text to appear when the input text does not match any item of the selection list.
+
 ### Events / Outputs
 
 `onQuery: EventEmitter<string>();`  
