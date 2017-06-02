@@ -1,6 +1,6 @@
-import {Component, OnInit, Input, Output, EventEmitter, forwardRef, ViewChild} from '@angular/core';
-import {Observable, Subscription} from 'rxjs/Rx';
-import {ControlValueAccessor, NG_VALUE_ACCESSOR} from '@angular/forms';
+import { Component, OnInit, Input, Output, EventEmitter, forwardRef, ViewChild } from '@angular/core';
+import { Observable, Subscription } from 'rxjs/Rx';
+import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 
 @Component({
     moduleId: 'ng2-combobox',
@@ -15,7 +15,7 @@ import {ControlValueAccessor, NG_VALUE_ACCESSOR} from '@angular/forms';
         
             <div class="icons">
                 <i *ngIf="loading" class="{{loadingIconClass}}"></i>
-                <i *ngIf="!loading" (click)="onTriggerClick()" class="{{triggerIconClass}}"></i>
+                <i *ngIf="!loading" (click)="onTriggerClick()" class="{{triggerIconClass}}" (mouseenter)="onMouseEnterTrigger($event)" (mouseleave)="onMouseLeaveTrigger($event)"></i>
             </div>
         
             <div class="list" *ngIf="data && !hideList" (mouseenter)="onMouseEnterList($event)" (mouseleave)="onMouseLeaveList($event)">
@@ -171,6 +171,8 @@ export class ComboBoxComponent implements ControlValueAccessor, OnInit {
     private _tmpVal: any;
     private _enterCued: boolean = false;
     private _noBlur: boolean = false;
+    private _onTrigger: boolean = false;
+    private _triggered: boolean = false;
 
     // ControlValueAccessor props
     private propagateTouch = () => {
@@ -249,7 +251,7 @@ export class ComboBoxComponent implements ControlValueAccessor, OnInit {
 
     set loading(loading: boolean) {
         this._loading = loading;
-        if(!loading && this._enterCued) {
+        if (!loading && this._enterCued) {
             this._enterCued = false;
             this.handleEnter();
         }
@@ -332,6 +334,14 @@ export class ComboBoxComponent implements ControlValueAccessor, OnInit {
 
     onMouseLeaveList() {
         this._noBlur = false;
+    }
+
+    onMouseEnterTrigger() {
+        this._onTrigger = true;
+    }
+
+    onMouseLeaveTrigger() {
+        this._onTrigger = false;
     }
 
     isMarked(value: Object): boolean {
@@ -444,10 +454,10 @@ export class ComboBoxComponent implements ControlValueAccessor, OnInit {
         if (!this.remote) {
             if (this.localFilter) {
                 this.data = this._initialData.filter((item) => {
-                    if(!this.currVal) {
+                    if (!this.currVal) {
                         return true;
                     } else {
-                        if(this.localFilterCaseSensitive) {
+                        if (this.localFilterCaseSensitive) {
                             return -1 !== this.getDisplayValue(item).indexOf(this.currVal);
                         } else {
                             return -1 !== this.getDisplayValue(item).toLowerCase().indexOf(this.currVal.toLowerCase());
@@ -477,7 +487,13 @@ export class ComboBoxComponent implements ControlValueAccessor, OnInit {
     }
 
     onTriggerClick() {
-        this._input.nativeElement.focus();
+        this._triggered = !this._triggered;
+        if (this._onTrigger && this._triggered) {
+            // this._noBlur = false;
+            this._input.nativeElement.focus();
+            return;
+        }
+        this._input.nativeElement.blur();
     }
 
     writeValue(value: any): void {
