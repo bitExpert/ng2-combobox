@@ -1,6 +1,6 @@
 {
   "name": "ng2-combobox",
-  "version": "0.5.2",
+  "version": "0.6.0",
   "description": "remote and local combobox component for angular 2",
   "main": "index.js",
   "scripts": {
