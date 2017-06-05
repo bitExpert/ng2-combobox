@@ -1,6 +1,6 @@
-import {Component, OnInit, Input, Output, EventEmitter, forwardRef, ViewChild} from '@angular/core';
-import {Observable, Subscription} from 'rxjs/Rx';
-import {ControlValueAccessor, NG_VALUE_ACCESSOR} from '@angular/forms';
+import { Component, OnInit, Input, Output, EventEmitter, forwardRef, ViewChild } from '@angular/core';
+import { Observable, Subscription } from 'rxjs/Rx';
+import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 
 @Component({
     moduleId: 'ng2-combobox',
@@ -249,7 +249,7 @@ export class ComboBoxComponent implements ControlValueAccessor, OnInit {
 
     set loading(loading: boolean) {
         this._loading = loading;
-        if(!loading && this._enterCued) {
+        if (!loading && this._enterCued) {
             this._enterCued = false;
             this.handleEnter();
         }
@@ -444,10 +444,10 @@ export class ComboBoxComponent implements ControlValueAccessor, OnInit {
         if (!this.remote) {
             if (this.localFilter) {
                 this.data = this._initialData.filter((item) => {
-                    if(!this.currVal) {
+                    if (!this.currVal) {
                         return true;
                     } else {
-                        if(this.localFilterCaseSensitive) {
+                        if (this.localFilterCaseSensitive) {
                             return -1 !== this.getDisplayValue(item).indexOf(this.currVal);
                         } else {
                             return -1 !== this.getDisplayValue(item).toLowerCase().indexOf(this.currVal.toLowerCase());
@@ -477,7 +477,12 @@ export class ComboBoxComponent implements ControlValueAccessor, OnInit {
     }
 
     onTriggerClick() {
-        this._input.nativeElement.focus();
+        if (this.hideList) {
+            // this._noBlur = false;
+            this._input.nativeElement.focus();
+            return;
+        }
+        this._input.nativeElement.blur();
     }
 
     writeValue(value: any): void {
