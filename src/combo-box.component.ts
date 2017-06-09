@@ -1,6 +1,6 @@
 import {Component, OnInit, Input, Output, EventEmitter, forwardRef, ViewChild} from '@angular/core';
 import {Observable, Subscription} from 'rxjs/Rx';
-import {ControlValueAccessor, NG_VALUE_ACCESSOR} from '@angular/forms';
+import {AbstractControl, ControlValueAccessor, NG_VALIDATORS, NG_VALUE_ACCESSOR, Validator} from '@angular/forms';
 
 @Component({
     moduleId: 'ng2-combobox',
@@ -12,12 +12,12 @@ import {ControlValueAccessor, NG_VALUE_ACCESSOR} from '@angular/forms';
                    (keydown)="onKeyDown($event)"
                    (blur)="onFieldBlur($event)"
                    (focus)="onFieldFocus()">
-        
+
             <div class="icons">
                 <i *ngIf="loading" class="{{loadingIconClass}}"></i>
                 <i *ngIf="!loading" (click)="onTriggerClick()" class="{{triggerIconClass}}"></i>
             </div>
-        
+
             <div class="list" *ngIf="data && !hideList" (mouseenter)="onMouseEnterList($event)" (mouseleave)="onMouseLeaveList($event)">
                 <div class="no-matches" *ngIf="noMatchesText && data.length == 0">{{noMatchesText}}</div>
                 <div *ngFor="let item of data;let index = index;"
@@ -108,9 +108,14 @@ import {ControlValueAccessor, NG_VALUE_ACCESSOR} from '@angular/forms';
         provide: NG_VALUE_ACCESSOR,
         useExisting: forwardRef(() => ComboBoxComponent),
         multi: true
+    },
+    {
+      provide: NG_VALIDATORS,
+      useExisting: forwardRef(() => ComboBoxComponent),
+      multi: true
     }]
 })
-export class ComboBoxComponent implements ControlValueAccessor, OnInit {
+export class ComboBoxComponent implements ControlValueAccessor, OnInit, Validator {
 
     @Input()
     displayField: string;
@@ -160,6 +165,7 @@ export class ComboBoxComponent implements ControlValueAccessor, OnInit {
 
     hideList: boolean = true;
     data: any[];
+    valid: boolean = false;
 
     private _loading: boolean = false;
     private _listDataSubscription: Subscription;
@@ -176,6 +182,10 @@ export class ComboBoxComponent implements ControlValueAccessor, OnInit {
     private propagateTouch = () => {
     };
     private propagateChange = (_: any) => {
+    };
+
+    // Validator props
+    private propagateValidate = () => {
     };
 
     constructor() {
@@ -205,12 +215,18 @@ export class ComboBoxComponent implements ControlValueAccessor, OnInit {
             });
         } else {
             let data = <Object[]>value;
+            if(!data) {
+                data = [];
+            }
             this.data = this._initialData = data;
             this.loading = false;
 
             // If the list data change, trigger a reprocessing.
             this.loadData();
         }
+
+        // During initialisation, the validation was not being triggered after setting the list data.
+        this.propagateValidate();
     }
 
     @Input()
@@ -465,29 +481,22 @@ export class ComboBoxComponent implements ControlValueAccessor, OnInit {
         this.propagateChange(this.getValueValue(val));
     }
 
-    private searchValueObject(value: any): any {
-        if (false === value instanceof Object && this.valueField && this._initialData) {
-            this._initialData.forEach((item) => {
-                if (value === this.getValueValue(item)) {
-                    value = item;
-                }
-            });
-        }
-        return value;
+    private searchByDisplayValue(displayValue: any): any {
+        return this._initialData.find(item => this.getDisplayValue(item) === displayValue);
     }
 
     onTriggerClick() {
         this._input.nativeElement.focus();
     }
 
-    writeValue(value: any): void {
-        value = this.searchValueObject(value);
+    // Implement ControlValueAccessor interface
 
-        if (value instanceof Object && this.getDisplayValue(value)) {
-            this.currVal = this.getDisplayValue(value);
-        } else {
-            this._tmpVal = value;
-        }
+    writeValue(value: any): void {
+
+        this.currVal = this.getDisplayValue(value);
+        this._tmpVal = this.getValueValue(value);
+
+        this.propagateTouch();
 
         this.onInitValue.emit(value);
     }
@@ -498,5 +507,29 @@ export class ComboBoxComponent implements ControlValueAccessor, OnInit {
 
     registerOnTouched(fn: any): void {
         this.propagateTouch = fn;
+    }
+
+    // Implement Validator interface
+    validate(c: AbstractControl): { [key: string]: any; } {
+
+        if (!this.remote && this._initialData && this._initialData.length > 0) {
+
+            if(!this.currVal || !this.currVal.trim()) {
+                return {'empty_input': 'Input value is empty'};
+            } else {
+                let isValid = !! this.searchByDisplayValue(this.currVal);
+                if(!isValid) {
+                    return {'input_no_match': `Cannot match the input value '${this.currVal}' to any of the provided data`};
+                }
+            }
+        }
+
+        // TODO implement validation for remote data
+
+        return null;
+    }
+
+    registerOnValidatorChange(fn: () => void): void {
+        this.propagateValidate = fn;
     }
 }
