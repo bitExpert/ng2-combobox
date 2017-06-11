@@ -1,13 +1,13 @@
-import {Component, OnInit, Input, Output, EventEmitter, forwardRef, ViewChild, ElementRef} from '@angular/core';
-import {Observable, Subscription} from 'rxjs/Rx';
-import {ControlValueAccessor, NG_VALUE_ACCESSOR} from '@angular/forms';
+import { Component, OnInit, Input, Output, EventEmitter, forwardRef, ViewChild, ElementRef } from '@angular/core';
+import { Observable, Subscription } from 'rxjs/Rx';
+import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 
 @Component({
     moduleId: 'ng2-combobox',
     selector: 'combo-box',
     template: `
         <div class="field-wrap">
-            <input #inputField class="{{inputClass}}" type="text"
+            <input #inputField class="{{inputClass}}" type="text" placeholder="{{inputPlaceholder}}"
                    [(ngModel)]="currVal"
                    (keydown)="onKeyDown($event)"
                    (blur)="onFieldBlur($event)"
@@ -19,6 +19,7 @@ import {ControlValueAccessor, NG_VALUE_ACCESSOR} from '@angular/forms';
             </div>
         
             <div class="list" *ngIf="data && !hideList" (mouseenter)="onMouseEnterList($event)" (mouseleave)="onMouseLeaveList($event)">
+                <div class="no-matches" *ngIf="noMatchesText && data.length == 0">{{noMatchesText}}</div>
                 <div *ngFor="let item of data;let index = index;"
                      [ngClass]="{'item': true, 'marked': isMarked(item), 'disabled': isDisabled(item)}"
                      (click)="onItemClick(index, item)">
@@ -43,6 +44,13 @@ import {ControlValueAccessor, NG_VALUE_ACCESSOR} from '@angular/forms';
             overflow: auto;
         }
         
+        .list .no-matches {
+            padding: 10px 20px;
+            cursor: default;
+            user-select: none;
+            font-style: italic;
+        }
+
         .list .item {
             padding: 10px 20px;
             cursor: pointer;
@@ -91,6 +99,10 @@ import {ControlValueAccessor, NG_VALUE_ACCESSOR} from '@angular/forms';
             background-image: url("data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz4NCjxzdmcgdmVyc2lvbj0iMS4xIiBpZD0iRWJlbmVfM19Lb3BpZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB4bWxuczp4bGluaz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94bGluayIgeD0iMHB4Ig0KCSB5PSIwcHgiIHZpZXdCb3g9IjAgMCA1OSAzMS45IiBzdHlsZT0iZW5hYmxlLWJhY2tncm91bmQ6bmV3IDAgMCA1OSAzMS45OyIgeG1sOnNwYWNlPSJwcmVzZXJ2ZSI+DQo8c3R5bGUgdHlwZT0idGV4dC9jc3MiPg0KCS5zdDB7ZmlsbDpub25lO3N0cm9rZTojMDAwMDAwO3N0cm9rZS13aWR0aDoxLjU7c3Ryb2tlLW1pdGVybGltaXQ6MTA7fQ0KPC9zdHlsZT4NCjxwb2x5bGluZSBjbGFzcz0ic3QwIiBwb2ludHM9IjU3LjYsMS44IDI5LjUsMjkuOCAyOS41LDI5LjggMS41LDEuOCAiLz4NCjwvc3ZnPg0K");
             cursor: pointer;
         }
+
+        input::-ms-clear {
+            display:none;
+        }
     `],
     providers: [{
         provide: NG_VALUE_ACCESSOR,
@@ -113,9 +125,13 @@ export class ComboBoxComponent implements ControlValueAccessor, OnInit {
     @Input()
     localFilter: boolean = false;
     @Input()
+    localFilterCaseSensitive: boolean = true;
+    @Input()
     typeAheadDelay: number = 500;
     @Input()
     inputClass: string = 'form-control';
+    @Input()
+    inputPlaceholder: string = '';
     @Input()
     loadingIconClass: string = 'loader';
     @Input()
@@ -126,6 +142,8 @@ export class ComboBoxComponent implements ControlValueAccessor, OnInit {
     disabledField: string = null;
     @Input()
     editable: boolean = true;
+    @Input()
+    noMatchesText: string = '';
 
     @Output()
     onQuery = new EventEmitter<string>();
@@ -189,6 +207,9 @@ export class ComboBoxComponent implements ControlValueAccessor, OnInit {
             let data = <Object[]>value;
             this.data = this._initialData = data;
             this.loading = false;
+
+            // If the list data change, trigger a reprocessing.
+            this.loadData();
         }
     }
 
@@ -235,7 +256,7 @@ export class ComboBoxComponent implements ControlValueAccessor, OnInit {
 
     set loading(loading: boolean) {
         this._loading = loading;
-        if(!loading && this._enterCued) {
+        if (!loading && this._enterCued) {
             this._enterCued = false;
             this.handleEnter();
         }
@@ -436,8 +457,15 @@ export class ComboBoxComponent implements ControlValueAccessor, OnInit {
         if (!this.remote) {
             if (this.localFilter) {
                 this.data = this._initialData.filter((item) => {
-                    return !this.currVal ||
-                        -1 !== this.getDisplayValue(item).indexOf(this.currVal);
+                    if (!this.currVal) {
+                        return true;
+                    } else {
+                        if (this.localFilterCaseSensitive) {
+                            return -1 !== this.getDisplayValue(item).indexOf(this.currVal);
+                        } else {
+                            return -1 !== this.getDisplayValue(item).toLowerCase().indexOf(this.currVal.toLowerCase());
+                        }
+                    }
                 });
             }
         } else {
@@ -462,7 +490,11 @@ export class ComboBoxComponent implements ControlValueAccessor, OnInit {
     }
 
     onTriggerClick() {
-        this._input.nativeElement.focus();
+        if (this.hideList) {
+            this._input.nativeElement.focus();
+            return;
+        }
+        this._input.nativeElement.blur();
     }
 
     writeValue(value: any): void {

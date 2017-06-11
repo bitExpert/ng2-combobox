@@ -52,11 +52,17 @@ true if an item has to be selected.
 `localFilter: boolean = false;`  
 true if local data should be filtered during typing.
 
+`localFilterCaseSensitive: boolean = true;`  
+true if local data filtering should be case sensitive.
+
 `typeAheadDelay: number = 500;`  
 delay before triggering search.
 
 `inputClass: string = 'form-control';`  
 class to apply to the inner input field
+
+`inputPlaceholder: string = '';`
+value of the placeholder attribute of the inner input field
 
 `loadingIconClass: string = 'loader';`  
 class to apply to the loading icon element
@@ -69,6 +75,9 @@ root element for list data (only first level at the moment)
 
 `disabledField: string = '';`
 member of data object which marks object as disabled (sets class and prevent selection)
+
+`noMatchesText: string = '';`
+text to appear when the input text does not match any item of the selection list.
 
 ### Events / Outputs
 
