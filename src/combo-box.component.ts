@@ -161,7 +161,7 @@ export class ComboBoxComponent implements ControlValueAccessor, OnInit {
     @Output()
     onInitValue = new EventEmitter<string>();
 
-    @ViewChild('inputField') _input;
+    @ViewChild('inputField') _input: any;
 
     hideList: boolean = true;
     data: any[];
