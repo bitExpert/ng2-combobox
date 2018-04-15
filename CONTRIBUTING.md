@@ -3,11 +3,7 @@
 ## Resources
 
 If you wish to contribute to ng2-combobox, please be sure to
-read/subscribe to the following resources:
-
- -  [The PSR-2 Coding Standard](http://www.php-fig.org/psr/psr-2/)
-
-If you are working on new features or refactoring [create a proposal](https://github.com/bitExpert/ng2-combobox/issues/new).
+read this document. If you are working on new features or refactoring [create a proposal](https://github.com/bitExpert/ng2-combobox/issues/new).
 
 ## Reporting Potential Security Issues
 
@@ -102,6 +98,7 @@ Total 20 (delta 12), reused 0 (delta 0)
 To ssh://git@github.com/{username}/ng2-combobox.git
    b5583aa..4f51698  HEAD -> master
 ```
+
 ### Sending a PR
 
 To send a PR you have two options:
