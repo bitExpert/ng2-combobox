@@ -19,7 +19,7 @@ import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
                 <i *ngIf="!loading && !hideList" class="{{triggerIconClass}} up"></i>
             </div>
         
-            <div class="list" *ngIf="data && !hideList" (mouseenter)="onMouseEnterList($event)" (mouseleave)="onMouseLeaveList($event)">
+            <div class="list" *ngIf="data && !hideList" (mouseenter)="onMouseEnterList()" (mouseleave)="onMouseLeaveList()">
                 <div class="no-matches" *ngIf="noMatchesText && data.length == 0">{{noMatchesText}}</div>
                 <div *ngFor="let item of data;let index = index;"
                      [ngClass]="{'item': true, 'marked': isMarked(item), 'disabled': isDisabled(item)}"
@@ -363,6 +363,20 @@ export class ComboBoxComponent implements ControlValueAccessor, OnInit {
         return !!value[this.disabledField];
     }
 
+    getDisplayValue(val: any) {
+        let result: any = val;
+
+        if (!this.displayField || !val) {
+            return null;
+        }
+
+        this.displayField.split('.').forEach((index) => {
+            result = result[index];
+        });
+
+        return result;
+    }
+
     private handleEnter() {
         if (!this.loading) {
             // try to determine marked (look if item is in list)
@@ -428,20 +442,6 @@ export class ComboBoxComponent implements ControlValueAccessor, OnInit {
     private clear() {
         this.currVal = '';
         this.data = [];
-    }
-
-    private getDisplayValue(val: any) {
-        let result: any = val;
-
-        if (!this.displayField || !val) {
-            return null;
-        }
-
-        this.displayField.split('.').forEach((index) => {
-            result = result[index];
-        });
-
-        return result;
     }
 
     private getValueValue(val: any) {
